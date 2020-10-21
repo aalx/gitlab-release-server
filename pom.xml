@@ -41,12 +41,33 @@
     <properties>
         <java.version>1.8</java.version>
         <powermock.version>2.0.0</powermock.version>
+        <docker.plugin.version>1.4.13</docker.plugin.version>
+        <docker.image.prefix>dev-tools</docker.image.prefix>
+        <docker.repostory>repo.cssca-sdt.com:5001</docker.repostory>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.12</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.13</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -119,6 +140,7 @@
     </dependencies>
 
     <build>
+        <finalName>gitlab-release-server</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -159,7 +181,47 @@
                     <check/>
                 </configuration>
             </plugin>
-        </plugins>
+        <plugin>
+            <groupId>com.spotify</groupId>
+            <artifactId>dockerfile-maven-plugin</artifactId>
+            <version>${docker.plugin.version}</version>
+            <executions>
+                <execution>
+                    <id>default</id>
+                    <goals>
+                        <goal>build</goal>
+                        <goal>push</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <repository>${docker.repostory}/dev-tools/${project.build.finalName}</repository>
+                <!--					<tag>${project.version}</tag>-->
+                <tag>latest</tag>
+                <dockerfile>Dockerfile</dockerfile>
+                <username>docker</username>
+                <password>docker</password>
+                <buildArgs>
+                    <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                </buildArgs>
+            </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>1.8</source>
+                <target>1.8</target>
+            </configuration>
+        </plugin>
+    </plugins>
+    <extensions>
+        <extension>
+            <groupId>com.spotify</groupId>
+            <artifactId>dockerfile-maven-extension</artifactId>
+            <version>${docker.plugin.version}</version>
+        </extension>
+    </extensions>
     </build>
 
 </project>
